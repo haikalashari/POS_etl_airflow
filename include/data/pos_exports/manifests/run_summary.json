@@ -1,0 +1,15 @@
+{
+  "source_transactions": 225000,
+  "source_items": 561968,
+  "source_payments": 225000,
+  "batches": 900,
+  "exported_files": 2700,
+  "target_anomaly_rate": 0.02,
+  "injected_anomalies": 5899,
+  "anomaly_types": {
+    "PAYMENT_MISMATCH": 1396,
+    "INVALID_PRODUCT_ID": 1533,
+    "INVALID_QUANTITY": 1571,
+    "DUPLICATE_TRANSACTION": 1399
+  }
+}

@@ -1,0 +1,16 @@
+services: 
+  db:
+    image: postgres:16
+    container_name: pos_dwh
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: dwh_user
+      POSTGRES_PASSWORD: dwh_password
+      POSTGRES_DB: pos_dwh
+    ports:
+      - "5433:5432"
+    volumes:
+      - pos_dwh_data:/var/lib/postgresql/data
+
+volumes:
+  pos_dwh_data:

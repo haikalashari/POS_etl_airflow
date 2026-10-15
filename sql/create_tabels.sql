@@ -3,19 +3,17 @@ CREATE SCHEMA IF NOT EXISTS raw;
 
 CREATE TABLE IF NOT EXISTS raw.raw_transactions(
     batch_id VARCHAR(50) NOT NULL,
-    loaded_at TIMESTAMPTZ DEFAULT NOW(),
+    loaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     transaction_id TEXT,
     outlet_id TEXT,
     transaction_time TEXT,
     order_type TEXT,
-    payment_method TEXT,
-    status TEXT,
     total_amount TEXT
 );
 
 CREATE TABLE IF NOT EXISTS raw.raw_transaction_items(
     batch_id VARCHAR(50) NOT NULL,
-    loaded_at TIMESTAMPTZ DEFAULT NOW(),
+    loaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     transaction_id TEXT,
     item_id TEXT,
     product_id TEXT,
@@ -28,12 +26,11 @@ CREATE TABLE IF NOT EXISTS raw.raw_transaction_items(
 
 CREATE TABLE IF NOT EXISTS raw.raw_payments(
     batch_id VARCHAR(50) NOT NULL,
-    loaded_at TIMESTAMPTZ DEFAULT NOW(),
+    loaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     payment_id TEXT,
     transaction_id TEXT,
     payment_method TEXT,
-    paid_amount TEXT,
-    payment_status TEXT
+    paid_amount TEXT
 );
 
 --Schema: staging
@@ -41,24 +38,22 @@ CREATE SCHEMA IF NOT EXISTS staging;
 
 CREATE TABLE IF NOT EXISTS staging.staging_transactions(
     batch_id VARCHAR(50) NOT NULL,
-    validation_status VARCHAR(10) DEFAULT('PENDING'),
+    validation_status VARCHAR(10) NOT NULL DEFAULT('PENDING'),
     error_codes VARCHAR(100),
-    loaded_at TIMESTAMPTZ DEFAULT NOW(),
+    loaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     transaction_id VARCHAR(20),
     outlet_id VARCHAR(10),
     transaction_time TIMESTAMP,
     transaction_date DATE,
     order_type VARCHAR(20),
-    payment_method VARCHAR(20),
-    status VARCHAR(20),
     total_amount NUMERIC(14,2)
 );
 
 CREATE TABLE IF NOT EXISTS staging.staging_transaction_items(
     batch_id VARCHAR(50) NOT NULL,
-    validation_status VARCHAR(10) DEFAULT('PENDING'),
+    validation_status VARCHAR(10) NOT NULL DEFAULT('PENDING'),
     error_codes VARCHAR(100),
-    loaded_at TIMESTAMPTZ DEFAULT NOW(),
+    loaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     transaction_id VARCHAR(20),
     item_id VARCHAR(20),
     product_id VARCHAR(10),
@@ -71,14 +66,13 @@ CREATE TABLE IF NOT EXISTS staging.staging_transaction_items(
 
 CREATE TABLE IF NOT EXISTS staging.staging_payments(
     batch_id VARCHAR(50) NOT NULL,
-    validation_status VARCHAR(10) DEFAULT('PENDING'),
+    validation_status VARCHAR(10) NOT NULL DEFAULT('PENDING'),
     error_codes VARCHAR(100),
-    loaded_at TIMESTAMPTZ DEFAULT NOW(),
+    loaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     payment_id VARCHAR(20),
     transaction_id VARCHAR(20),
     payment_method VARCHAR(20),
-    paid_amount NUMERIC(14,2),
-    payment_status VARCHAR(20)
+    paid_amount NUMERIC(14,2)
 );
 
 --Schema Audit
@@ -100,9 +94,9 @@ CREATE TABLE IF NOT EXISTS audit.audit_quarantine_records(
     batch_id VARCHAR(50) NOT NULL REFERENCES audit.audit_batch_runs(batch_id),
     transaction_id VARCHAR(20) NOT NULL,
     source_table VARCHAR(30),
-    error_code VARCHAR(10) NOT NULL,
+    error_code VARCHAR(30) NOT NULL,
     error_detail TEXT,
-    quarantined_at TIMESTAMPTZ DEFAULT NOW()
+    quarantined_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 --Schema: Warehouse
@@ -126,7 +120,7 @@ CREATE TABLE IF NOT EXISTS warehouse.dim_product(
 
 CREATE TABLE IF NOT EXISTS warehouse.dim_payment(
     payment_key INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    payment_method VARCHAR(20) UNIQUE NOT NULL,
+    payment_method VARCHAR(20) UNIQUE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS warehouse.dim_date(
@@ -152,7 +146,6 @@ CREATE TABLE IF NOT EXISTS warehouse.fact_sales(
     transaction_id VARCHAR(20) NOT NULL,
     item_id VARCHAR(20) NOT NULL UNIQUE,
     order_type VARCHAR(20) NOT NULL,
-    status VARCHAR(20) NOT NULL,
     transaction_time TIMESTAMP NOT NULL,
     quantity INTEGER NOT NULL,
     unit_price NUMERIC(14,2) NOT NULL,
@@ -161,7 +154,7 @@ CREATE TABLE IF NOT EXISTS warehouse.fact_sales(
     line_cost NUMERIC(14,2) NOT NULL,
     gross_profit NUMERIC(14,2) NOT NULL,
     batch_id VARCHAR(50) NOT NULL REFERENCES audit.audit_batch_runs(batch_id),
-    loaded_at TIMESTAMPTZ DEFAULT NOW()
+    loaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 --INDEXES for raw

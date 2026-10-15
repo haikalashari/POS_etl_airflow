@@ -166,3 +166,15 @@ CREATE INDEX IF NOT EXISTS idx_raw_transaction_items_batch_id
 
 CREATE INDEX IF NOT EXISTS idx_raw_payments_batch_id
     ON raw.raw_payments(batch_id);
+
+--dim_payment langsung isi aja
+INSERT INTO warehouse.dim_payment (payment_method)
+VALUES
+    ('QRIS'),
+    ('Cash'),
+    ('Debit'),
+    ('E-Wallet')
+ON CONFLICT (payment_method)
+DO NOTHING;
+
+-- untuk dim_product sama dim_outlet itu insert melalui csv dari data yang sudah di generate

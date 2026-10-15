@@ -1,0 +1,31 @@
+﻿product_id,product_name,category,unit_price,unit_cost
+P001,Espresso,Coffee,12000,4000
+P002,Americano,Coffee,16000,5000
+P003,Cafe Latte,Coffee,22000,8000
+P004,Cappuccino,Coffee,22000,7500
+P005,Caramel Latte,Coffee,26000,9500
+P006,Vanilla Latte,Coffee,26000,9000
+P007,Mocha,Coffee,25000,9000
+P008,Kopi Susu Gula Aren,Coffee,20000,7000
+P009,Cold Brew,Coffee,22000,7500
+P010,Matcha Latte,Non-Coffee,25000,9500
+P011,Chocolate,Non-Coffee,22000,8000
+P012,Red Velvet,Non-Coffee,24000,8500
+P013,Taro Latte,Non-Coffee,23000,8000
+P014,Lemon Tea,Tea,15000,4500
+P015,Peach Tea,Tea,18000,5500
+P016,Lychee Tea,Tea,18000,5500
+P017,Thai Tea,Tea,18000,6000
+P018,Green Tea,Tea,16000,5000
+P019,French Fries,Snack,18000,7000
+P020,Chicken Nuggets,Snack,20000,8500
+P021,Roti Bakar,Snack,18000,6500
+P022,Pisang Goreng,Snack,16000,5500
+P023,Donut,Snack,10000,3500
+P024,Croissant,Snack,18000,7500
+P025,Chicken Rice Bowl,Meal,30000,14000
+P026,Beef Rice Bowl,Meal,38000,19000
+P027,Chicken Sandwich,Meal,28000,13000
+P028,Spaghetti Bolognese,Meal,35000,16000
+P029,Fried Rice,Meal,28000,12000
+P030,Chicken Burger,Meal,32000,15000

@@ -126,9 +126,7 @@ CREATE TABLE IF NOT EXISTS warehouse.dim_product(
 
 CREATE TABLE IF NOT EXISTS warehouse.dim_payment(
     payment_key INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    payment_method VARCHAR(20) NOT NULL,
-    payment_status VARCHAR(20) NOT NULL,
-    UNIQUE (payment_method, payment_status)
+    payment_method VARCHAR(20) UNIQUE NOT NULL,
 );
 
 CREATE TABLE IF NOT EXISTS warehouse.dim_date(

@@ -177,4 +177,4 @@ VALUES
 ON CONFLICT (payment_method)
 DO NOTHING;
 
--- untuk dim_product sama dim_outlet itu insert melalui csv dari data yang sudah di generate
+-- untuk dim_product sama dim_outlet itu insert melalui csv dari data yang sudah di generate, untuk dim date generate saja lewat sql sesuaikan dengan tanggal data yang sudah digenerate

@@ -60,7 +60,7 @@ def read_csv(file_path, wanted_columns):
 
         for column in wanted_columns:
             if column not in header:
-                raise ValueError(f"Kolom {column}, tidak ada di {file_path}")
+                raise ValueError(f"Coulm {column}, does not exist in {file_path}")
 
         rows = []
         for row in reader:
@@ -201,7 +201,7 @@ def load_batch(connection, batches):
             connection.commit()
 
             print(
-                f"Batch {batch_id} berhasil dimuat: "
+                f"Batch {batch_id} load success: "
                 f"{len(transactions)} transactions, "
                 f"{len(items)} items, "
                 f"{len(payments)} payments"
@@ -209,7 +209,7 @@ def load_batch(connection, batches):
 
         except Exception:
             connection.rollback()
-            print(f"Batch {batch_id} gagal dimuat.")
+            print(f"Batch {batch_id} fail to load.")
             raise
 
         finally:

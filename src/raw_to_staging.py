@@ -84,22 +84,24 @@ WHERE batch_id = %s
 
 #function find_raw_batch lakuin fetch pakai sql untuk query select ke raw apakah ada batchnya
 def find_raw_batch(connection):
+    # batch dianggap SELESAI hanya kalau jumlah baris raw == staging untuk KETIGA tabel.
+    # jadi staging yang kepotong (header masuk tapi items/payments belum) tetap dianggap pending.
+    # nama tabel diambil dari TABLE_PAIRS (allowlist), jadi aman dari SQL injection.
+    pending_sql = " UNION ".join(
+        f"""
+        SELECT r.batch_id
+        FROM {raw_table} r
+        GROUP BY r.batch_id
+        HAVING COUNT(*) <> (
+            SELECT COUNT(*) FROM {staging_table} s WHERE s.batch_id = r.batch_id
+        )
+        """
+        for raw_table, staging_table in TABLE_PAIRS
+    )
     with connection.cursor() as cursor:
-        # cek 1 table aja gamasalah seharusnya karena di raw pasti ke load semua jadi gaperlu cek 3 3nya
-        cursor.execute(
-        """
-        SELECT DISTINCT r.batch_id
-        FROM raw.raw_transactions r
-        WHERE NOT EXIST (
-            SELECT 1
-            FROM staging.staging_transactions s
-            WHERE s.batch_id = r.batch_id
-        )
-        ORDER BY r.batch_id
-        """
-        )
+        cursor.execute(f"SELECT batch_id FROM ({pending_sql}) x ORDER BY batch_id")
         rows = cursor.fetchall()
-    return (row[0] for row in rows)
+    return [row[0] for row in rows]
 
 def count_batch_rows(cursor, table, batch_id):
     cursor.execute(f"SELECT COUNT(*) FROM {table} WHERE batch_id = %s", (batch_id,))
@@ -139,4 +141,5 @@ def load_batch_to_staging(connection, batch_id):
         raise
 
     finally:
-        connection.close()
+        # jangan tutup connection di sini: connection dipakai bersama oleh loop di DAG
+        cursor.close()

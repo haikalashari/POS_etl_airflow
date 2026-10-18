@@ -210,17 +210,27 @@ def load_batch(connection, batch):
 
 def archive_batch(batch):
     #pindahin file path dari batch ke archive sesuai dengan pola path sebelumnya
+    #dibuat idempotent: aman dipanggil ulang, tidak error kalau archive sudah ada
     source_path = batch["path"]
     outlet_id = batch["outlet_id"]
     batch_date = batch["batch_date"]
 
-    archive_path = os.path.join(
-        ARCHIVE_DIR, f"outlet_{outlet_id}", batch_date
-    )
+    archive_dir = os.path.join(ARCHIVE_DIR, f"outlet_{outlet_id}")
+    archive_path = os.path.join(archive_dir, batch_date)
 
-    os.makedirs(os.path.dirname(archive_path), exist_ok=True)
+    if not os.path.exists(source_path):
+        print(f"Batch {batch['batch_id']} sudah tidak ada di incoming, skip archive")
+        return
+
+    os.makedirs(archive_dir, exist_ok=True)
+
     if os.path.exists(archive_path):
-        raise FileExistsError(f"Archive destionation already exist: {archive_path}")
+        # sudah pernah di-archive. jangan gagal dan jangan hapus data:
+        # simpan sebagai duplikat bertimestamp supaya tidak menimpa archive lama.
+        suffix = datetime.now().strftime("%Y%m%d%H%M%S")
+        archive_path = f"{archive_path}__dup{suffix}"
+        print(f"Archive sudah ada untuk {batch['batch_id']}, disimpan ke {archive_path}")
+
     shutil.move(source_path, archive_path)
-    print(f"Batch {batch['batch_id']} archived succesfully")
+    print(f"Batch {batch['batch_id']} archived successfully")
 

@@ -282,26 +282,26 @@ The screenshots below are from my **first full run of the pipeline**, which cove
 
 ### Airflow — successful DAG run
 
-(document\result\dag_run_success.png)
+![dag_run_success](document\result\dag_run_success.png)
 
 ### Raw layer (pgAdmin)
 
-(document\result\dag_raw_layer_log.png)
-(document\result\dag_raw_pgadmin.png)
+![dag raw log](document\result\dag_raw_layer_log.png)
+![dag raw pgadmin](document\result\dag_raw_pgadmin.png)
 
 ### Staging — typed and validated
 
-(document\result\dag_staging_log.png)
-(document\result\dag_staging_pgadmin.png)
+![dag staging log](document\result\dag_staging_log.png)
+![dag staging pgadmin](document\result\dag_staging_pgadmin.png)
 
 ### Audit — quarantined records
 
-(document\result\dag_quarantine_pgadmin.png)
+![dag quarantine pgadmin](document\result\dag_quarantine_pgadmin.png)
 
 ### Warehouse — fact_sales loaded
 
-(document\result\dag_validation_logs.png)
-(document\result\dag_fact_sales_pgadmin.png)
+![dag validation log](document\result\dag_validation_logs.png)
+![dag fact sales pg admin](document\result\dag_fact_sales_pgadmin.png)
 
 ## Design Decisions & Reliability
 

@@ -100,3 +100,42 @@ def find_raw_batch(connection):
         rows = cursor.fetchall()
     return (row[0] for row in rows)
 
+def count_batch_rows(cursor, table, batch_id):
+    cursor.execute(f"SELECT COUNT(*) FROM {table} WHERE batch_id = %s", (batch_id,))
+    return cursor.fetchone()[0]
+
+def load_batch_to_staging(connection, batch_id):
+    print(f"Staging batch: {batch_id}")
+
+    cursor = connection.cursor()
+
+    try:
+        # hapus staging lama batch ini, supaya diproses ulang tidak jadi ganda
+        for _, staging_table in TABLE_PAIRS:
+            cursor.execute(
+                f"DELETE FROM {staging_table} WHERE batch_id = %s", (batch_id,)
+            )
+
+        # execute SQL
+        cursor.execute(INSERT_TRANSACTIONS_SQL, (batch_id,))
+        cursor.execute(INSERT_ITEMS_SQL, (batch_id,))
+        cursor.execute(INSERT_PAYMENTS_SQL, (batch_id,))
+
+        # rekonsiliasi jumlah baris raw dan staging
+        for raw_table, staging_table in TABLE_PAIRS:
+            raw_count = count_batch_rows(cursor, raw_table, batch_id)
+            staging_count = count_batch_rows(cursor, staging_table, batch_id)
+
+            if raw_count != staging_count:
+                raise ValueError(f"jumlah baris tidak sesuai untuk {batch_id}" f"{raw_table}={raw_count}, {staging_table}={staging_count}")
+
+        connection.commit()
+        print(f"batch {batch_id} berhasil di load ke staging")
+    
+    except Exception:
+        connection.rollback()
+        print(f"batch {batch_id} tidak dapat di load ke staging")
+        raise
+
+    finally:
+        connection.close()

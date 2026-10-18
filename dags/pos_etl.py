@@ -33,7 +33,6 @@ def pos_etl(): #pos_etl dag itu digambarkan dengan 1 proses penuh
         #dari raw ke staging ini validasi data type dan pengecekan awal kalo batch yang sudah diproses raw sama staging sama
         hook = PostgresHook(postgres_conn_id = "pos_dwh")
         connection = hook.get.conn()
-        
 
         try:
             batch_ids = find_raw_batch(connection)
@@ -49,7 +48,7 @@ def pos_etl(): #pos_etl dag itu digambarkan dengan 1 proses penuh
     @task
     def staging_validation_to_warehouse_audit():
         #disini seharusnya banyak ni validasi karna mau masuk ke quarantine atau ke warehouse
-        
+
     data = ingestion_data_to_raw()
     staging_data = raw_to_staging(data)
     clean_data = staging_validation_to_warehouse_audit(staging_data)

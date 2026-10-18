@@ -85,6 +85,7 @@ WHERE batch_id = %s
 #function find_raw_batch lakuin fetch pakai sql untuk query select ke raw apakah ada batchnya
 def find_raw_batch(connection):
     with connection.cursor() as cursor:
+        # cek 1 table aja gamasalah seharusnya karena di raw pasti ke load semua jadi gaperlu cek 3 3nya
         cursor.execute(
         """
         SELECT DISTINCT r.batch_id

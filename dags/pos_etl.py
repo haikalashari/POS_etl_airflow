@@ -97,8 +97,9 @@ def pos_etl():  # pos_etl dag itu digambarkan dengan 1 proses penuh
         print(f"{len(batch_ids)} batch processed to warehouse/audit")
 
     data = ingestion_data_to_raw()
-    staging_data = raw_to_staging(data)
-    clean_data = staging_validation_to_warehouse_audit(staging_data)
+    staging_data = raw_to_staging()
+    clean_data = staging_validation_to_warehouse_audit()
+    data >> staging_data >> clean_data
 
 
 pos_etl()

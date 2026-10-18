@@ -277,49 +277,31 @@ The DAG runs `@daily` with `catchup=False` and `max_active_runs=1`. Every task i
 
 ## Results & Verification
 
-<!-- ============================================================
-     SCREENSHOT SECTION — TO BE COMPLETED BY HAIKAL
-     Suggested folder: document/screenshots/
-     Uncomment and fill in the image paths as you add them.
-     ============================================================ -->
 
 The screenshots below are from my **first full run of the pipeline**, which covered the **10 outlets** (`O001`–`O010`, September 2026) — 300 batches / 900 files in total. If you want to reproduce the run yourself, the generated data is already sitting in `include/data/pos_exports/pending/`: copy it into `incoming/` (see [How to Run the Pipeline](#how-to-run-the-pipeline)) and trigger the DAG.
 
 ### Airflow — successful DAG run
 
-<!-- ![Airflow DAG run](document/screenshots/dag_run_success.png) -->
-<!-- TODO: screenshot of the Grid/Graph view with all 3 tasks green. -->
+(document\result\dag_run_success.png)
 
 ### Raw layer (pgAdmin)
 
-<!-- ![Raw layer row counts](document/screenshots/raw_layer.png) -->
-<!-- TODO: screenshot of raw.raw_transactions / raw.raw_transaction_items / raw.raw_payments row counts. -->
-<!-- Expected after a full run: 15,000 / 37,357 / 15,000 rows. -->
+(document\result\dag_raw_layer_log.png)
+(document\result\dag_raw_pgadmin.png)
 
 ### Staging — typed and validated
 
-<!-- ![Staging validation status](document/screenshots/staging_validation.png) -->
-<!-- TODO: screenshot of validation_status + error_codes columns in staging, e.g. -->
-<!-- SELECT validation_status, COUNT(*) FROM staging.staging_transactions GROUP BY 1; -->
+(document\result\dag_staging_log.png)
+(document\result\dag_staging_pgadmin.png)
 
 ### Audit — quarantined records
 
-<!-- ![Quarantine records](document/screenshots/quarantine.png) -->
-<!-- TODO: screenshot of audit.audit_quarantine_records grouped by error_code. -->
-<!-- Expected: 300 injected anomalies surfaced as R1/R2/R3/R4 with human-readable error_detail. -->
+(document\result\dag_quarantine_pgadmin.png)
 
 ### Warehouse — fact_sales loaded
 
-<!-- ![Fact sales dashboard](document/screenshots/fact_sales.png) -->
-<!-- TODO: screenshot of a query on warehouse.fact_sales, e.g. sales & gross profit per outlet or per day. -->
-
-### Batch audit trail
-
-<!-- ![Audit batch runs](document/screenshots/audit_batch_runs.png) -->
-<!-- TODO: screenshot of audit.audit_batch_runs: 300 rows with status SUCCESS/PARTIAL, -->
-<!-- rows_loaded and rows_quarantined filled in. -->
-
----
+(document\result\dag_validation_logs.png)
+(document\result\dag_fact_sales_pgadmin.png)
 
 ## Design Decisions & Reliability
 

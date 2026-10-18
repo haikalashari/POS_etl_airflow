@@ -1,5 +1,7 @@
 from airflow.sdk import dag, task
 import datetime 
+import src.ingestion import find_batch, read_csv, load_batch, archive_batch
+from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 @dag(
     dag_id="pos_etl",
@@ -11,9 +13,20 @@ import datetime
 def pos_etl(): #pos_etl dag itu digambarkan dengan 1 proses penuh
     @task #digambarkan dengan 1 sub proses
     def ingestion_data_to_raw():
-        #task 1 check the folder, ada ga file yang diinginkan dan sesuai kondisi
-        #task 2 read the file, ada ga kolom yang diperlukan dan sesuai kondisi
-        #task 3 load the file sesuai dengan table raw di db
+        batches = find_batch()
+
+        if not batches:
+            print("No incoming batches data")
+            return 
+        hook = PostgresHook(postgres_conn_id = "pos_dwh")
+        connection = hook.get_conn()
+        try:
+            for batch in batches:
+                load_batch(connection, batch)
+                archive_batch(batch)
+        finally:
+            connection.close() 
+        print(f"{len(batches)} batch load to raw succesfully and archived!")
     @task
     def raw_to_staging():
         #dari raw ke staging ini validasi data type dan pengecekan awal kalo batch yang sudah diproses raw sama staging sama

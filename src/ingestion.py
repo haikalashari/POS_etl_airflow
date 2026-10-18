@@ -71,9 +71,11 @@ def read_csv(file_path, wanted_columns):
 
 
 def load_batch(connection, batch):
-    #load disini seperti biasa 1 batch 1 outlet ingat jadi karna pasti ada banyak outlet maka banyak batch dalam 1 kali jalan, jadi pakai loop
-    loaded_at = datetime.now()
-    
+    # 1 kali fungsi dipanggil = 1 batch (1 outlet + 1 tanggal). Loop-nya ada di task DAG.
+    batch_id = batch["batch_id"]
+    outlet_id = batch["outlet_id"]
+    path = batch["path"]
+
     transaction_columns = [
         "transaction_id",
         "transaction_time",
@@ -99,123 +101,112 @@ def load_batch(connection, batch):
         "paid_amount",
     ]
 
-    for batch in batch:
-        batch_id = batch["batch_id"]
-        outlet_id = batch["outlet_id"]
-        batch_date = batch["batch_date"]
-        path = batch["path"]
+    print(f"Loading batch: {batch_id}")
 
-        print(f"Loading batch: {batch_id}")
+    # Baca semua CSV dulu. Kalau ada file rusak, error muncul di sini
+    # sebelum database disentuh sama sekali.
+    transactions = read_csv(
+        os.path.join(path, "transactions.csv"),
+        transaction_columns,
+    )
 
-        transactions = read_csv(
-            os.path.join(path, "transactions.csv"),
-            transaction_columns,
+    items = read_csv(
+        os.path.join(path, "transaction_items.csv"),
+        item_columns,
+    )
+
+    payments = read_csv(
+        os.path.join(path, "payments.csv"),
+        payment_columns,
+    )
+
+    cursor = connection.cursor()
+
+    try:
+        # Hapus data lama batch ini, supaya batch yang dimuat ulang tidak jadi ganda
+        cursor.execute(
+            "DELETE FROM raw.raw_transactions WHERE batch_id = %s", (batch_id,)
+        )
+        cursor.execute(
+            "DELETE FROM raw.raw_transaction_items WHERE batch_id = %s", (batch_id,)
+        )
+        cursor.execute(
+            "DELETE FROM raw.raw_payments WHERE batch_id = %s", (batch_id,)
         )
 
-        items = read_csv(
-            os.path.join(path, "transaction_items.csv"),
-            item_columns,
-        )
-
-        payments = read_csv(
-            os.path.join(path, "payments.csv"),
-            payment_columns,
-        )
-
-        cursor = connection.cursor()
-
-        try:
-            cursor.executemany(
-                """
-                INSERT INTO raw.raw_transactions (
+        cursor.executemany(
+            """
+            INSERT INTO raw.raw_transactions (
+                batch_id,
+                transaction_id,
+                outlet_id,
+                transaction_time,
+                order_type,
+                total_amount
+            )
+            VALUES (%s, %s, %s, %s, %s, %s)
+            """,
+            [
+                (
                     batch_id,
-                    loaded_at,
-                    transaction_id,
+                    row[0],
                     outlet_id,
-                    transaction_time,
-                    order_type,
-                    total_amount
+                    row[1],
+                    row[2],
+                    row[3],
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """,
-                [
-                    (
-                        batch_id,
-                        loaded_at,
-                        row[0],
-                        outlet_id,
-                        row[1],
-                        row[2],
-                        row[3],
-                    )
-                    for row in transactions
-                ],
+                for row in transactions
+            ],
+        )
+
+        cursor.executemany(
+            """
+            INSERT INTO raw.raw_transaction_items (
+                batch_id,
+                transaction_id,
+                item_id,
+                product_id,
+                quantity,
+                unit_price,
+                discount_amount,
+                line_total,
+                line_cost
             )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            [(batch_id, *row) for row in items],
+        )
 
-            cursor.executemany(
-                """
-                INSERT INTO raw.raw_transaction_items (
-                    batch_id,
-                    loaded_at,
-                    transaction_id,
-                    item_id,
-                    product_id,
-                    quantity,
-                    unit_price,
-                    discount_amount,
-                    line_total,
-                    line_cost
-                )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """,
-                [
-                    (
-                        batch_id,
-                        loaded_at,
-                        *row,
-                    )
-                    for row in items
-                ],
+        cursor.executemany(
+            """
+            INSERT INTO raw.raw_payments (
+                batch_id,
+                payment_id,
+                transaction_id,
+                payment_method,
+                paid_amount
             )
+            VALUES (%s, %s, %s, %s, %s)
+            """,
+            [(batch_id, *row) for row in payments],
+        )
 
-            cursor.executemany(
-                """
-                INSERT INTO raw.raw_payments (
-                    batch_id,
-                    loaded_at,
-                    payment_id,
-                    transaction_id,
-                    payment_method,
-                    paid_amount
-                )
-                VALUES (%s, %s, %s, %s, %s, %s)
-                """,
-                [
-                    (
-                        batch_id,
-                        loaded_at,
-                        *row,
-                    )
-                    for row in payments
-                ],
-            )
+        connection.commit()
 
-            connection.commit()
+        print(
+            f"Batch {batch_id} load success: "
+            f"{len(transactions)} transactions, "
+            f"{len(items)} items, "
+            f"{len(payments)} payments"
+        )
 
-            print(
-                f"Batch {batch_id} load success: "
-                f"{len(transactions)} transactions, "
-                f"{len(items)} items, "
-                f"{len(payments)} payments"
-            )
+    except Exception:
+        connection.rollback()
+        print(f"Batch {batch_id} fail to load.")
+        raise
 
-        except Exception:
-            connection.rollback()
-            print(f"Batch {batch_id} fail to load.")
-            raise
-
-        finally:
-            cursor.close()
+    finally:
+        cursor.close()
 
 def archive_batch(batch):
     #pindahin file path dari batch ke archive sesuai dengan pola path sebelumnya
